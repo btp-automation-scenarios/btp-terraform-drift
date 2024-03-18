@@ -1,0 +1,68 @@
+name: Check for Subaccount Drift via Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      PROJECT_NAME:
+        description: "Name of the project"
+        required: true
+        default: "sample-proj-drift"
+      REGION:
+        description: "Region for the sub account"
+        required: true
+        default: "eu10"
+      COST_CENTER:
+        description: "Cost center for the project"
+        required: true
+        default: "1234567890"
+      STAGE:
+        description: "Stage for the project"
+        required: true
+        default: "DEV"
+      ORGANIZATION:
+        description: "Organization for the project"
+        required: true
+        default: "B2B"
+
+env:
+  PATH_TO_TFSCRIPT: 'infra'
+
+jobs:
+  execute_base_setuup:
+    name: BTP Subaccount Drift Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      id: checkout_repo
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      id : setup_terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+        terraform_version: latest
+
+    - name: Terraform Init
+      id: terraform_init
+      shell: bash
+      run: |
+        export export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} init -no-color
+
+    - name: Terraform Plan 
+      id: terraform_plan
+      shell: bash
+      continue-on-error: true
+      run: |
+        export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+        export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+        export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode
+    
+    - name: Terraform Drift Check
+      id: terraform_drift
+      if: steps.terraform_plan.outcome == 'failure'
+      run: |
+        echo "Drift detected in the Terraform Plan Phase"
+        exit 1
