@@ -1,28 +1,7 @@
-name: Basis Subaccount via Terraform
+name: Destroy Subaccount via Terraform
 
 on:
   workflow_dispatch:
-    inputs:
-      PROJECT_NAME:
-        description: "Name of the project"
-        required: true
-        default: "sample-proj-drift"
-      REGION:
-        description: "Region for the sub account"
-        required: true
-        default: "eu10"
-      COST_CENTER:
-        description: "Cost center for the project"
-        required: true
-        default: "1234567890"
-      STAGE:
-        description: "Stage for the project"
-        required: true
-        default: "DEV"
-      ORGANIZATION:
-        description: "Organization for the project"
-        required: true
-        default: "B2B"
 
 env:
   PATH_TO_TFSCRIPT: 'infra'
@@ -58,6 +37,6 @@ jobs:
         export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
         export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
         export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
-        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} apply -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -auto-approve -no-color           
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} destroy -auto-approve -no-color           
 
       # Integrate with workflow system to inform the requestor about the status of the project creation
