@@ -1,4 +1,4 @@
-name: Basis Subaccount via Terraform
+name: Check for Subaccount Drift via Terraform
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ env:
 
 jobs:
   execute_base_setuup:
-    name: BTP Subaccount Setup
+    name: BTP Subaccount Drift Check
     runs-on: ubuntu-latest
     steps:
     - name: Check out Git repository
@@ -50,12 +50,19 @@ jobs:
         export export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
         terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} init -no-color
 
-    - name: Terraform Apply 
-      id: terraform_apply
+    - name: Terraform Plan 
+      id: terraform_plan
       shell: bash
+      continue-on-error: true
       run: |
         export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
         export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
         export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
-        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} apply -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -auto-approve -no-color
-        
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode
+    
+    - name: Terraform Drift Check
+      id: terraform_drift
+      if: steps.terraform_plan.outcome == 'failure'
+      run: |
+        echo "Drift detected in the Terraform Plan Phase"
+        exit 1
