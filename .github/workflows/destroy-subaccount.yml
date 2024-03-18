@@ -1,0 +1,42 @@
+name: Destroy Subaccount via Terraform
+
+on:
+  workflow_dispatch:
+
+env:
+  PATH_TO_TFSCRIPT: 'infra'
+
+jobs:
+  execute_base_setuup:
+    name: BTP Subaccount Setup
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Git repository
+      id: checkout_repo
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      id : setup_terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+        terraform_version: latest
+
+    - name: Terraform Init
+      id: terraform_init
+      shell: bash
+      run: |
+        export export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} init -no-color
+
+    - name: Terraform Apply 
+      id: terraform_apply
+      shell: bash
+      # We do not store the state - in a real setup we would reference a remote backend to store the state
+      run: |
+        export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
+        export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
+        export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} destroy -auto-approve -no-color           
+
+      # Integrate with workflow system to inform the requestor about the status of the project creation
