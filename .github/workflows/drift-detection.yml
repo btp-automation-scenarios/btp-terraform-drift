@@ -58,11 +58,31 @@ jobs:
         export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
         export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
         export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
-        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode > plan.tfplan
     
-    - name: Terraform Drift Check
-      id: terraform_drift
+    - name: Terraform Drift - Reformat plan
+      id: terraform_plan_json
       if: steps.terraform_plan.outcome == 'failure'
       run: |
-        echo "Drift detected in the Terraform Plan Phase"
-        exit 1
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} show -json plan.tfplan > plan.json
+    
+    - name: Find existing drift issue
+      id: find_issue
+      uses: micalevisk/last-issue-action@v2
+      if: steps.terraform_plan.outcome == 'failure'
+      with:
+        state: open
+        labels: |
+          drift detected
+          automated issue
+    - name: Create or update issue for broken links
+      uses: peter-evans/create-issue-from-file@v5
+      if: steps.terraform_plan.outcome == 'failure'
+      with:
+        title: Link Checker Report
+        # If issue number is empty a new issue gets created
+        issue-number: ${{ steps.find_issue.outputs.issue-number }}
+        content-filepath: ${{ env.PATH_TO_TFSCRIPT }}/plan.json
+        labels: drift detected, automated issue    
+
+  
