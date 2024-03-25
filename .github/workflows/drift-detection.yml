@@ -58,7 +58,7 @@ jobs:
         export ARM_ACCESS_KEY=${{ secrets.ARM_ACCESS_KEY }}
         export BTP_USERNAME=${{ secrets.BTP_USERNAME }}
         export BTP_PASSWORD=${{ secrets.BTP_PASSWORD }}
-        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode > plan.tfplan
+        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode
         
     - name: Create issue
       if: steps.terraform_plan.outcome == 'failure'  
