@@ -69,8 +69,9 @@ jobs:
         COST_CENTER: ${{ github.event.inputs.COST_CENTER }}
       with:
         script: |
-          issueTitle = `Configuratiion Drift Detected for ${process.env.PROJECT_NAME}`
-          issueBody = `A drift has been detected for ${process.env.PROJECT_NAME} in ${process.env.REGION} region. Stage is ${process.env.STAGE} and cost center is ${process.env.COST_CENTER}`
+          const issueTitle = `Configuratiion Drift Detected for ${process.env.PROJECT_NAME}`
+          const issueBody = `A drift has been detected for ${process.env.PROJECT_NAME} in ${process.env.REGION} region. Stage is ${process.env.STAGE} and cost center is ${process.env.COST_CENTER}`
+         
           github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
