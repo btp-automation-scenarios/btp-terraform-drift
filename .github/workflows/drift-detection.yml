@@ -64,7 +64,7 @@ jobs:
       id: terraform_plan_json
       if: steps.terraform_plan.outcome == 'failure'
       run: |
-        terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} show -json plan.tfplan > plan.json
+        terraform show -json plan.tfplan > plan.json
     
     - name: Find existing drift issue
       id: find_issue
@@ -82,7 +82,7 @@ jobs:
         title: Link Checker Report
         # If issue number is empty a new issue gets created
         issue-number: ${{ steps.find_issue.outputs.issue-number }}
-        content-filepath: ${{ env.PATH_TO_TFSCRIPT }}/plan.json
+        content-filepath: ./plan.json
         labels: drift detected, automated issue    
 
   
