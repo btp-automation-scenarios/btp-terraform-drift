@@ -67,10 +67,11 @@ jobs:
         REGION: ${{ github.event.inputs.REGION }}
         STAGE: ${{ github.event.inputs.STAGE }}
         COST_CENTER: ${{ github.event.inputs.COST_CENTER }}
+        RUN_ID : ${{ github.run_id }}
       with:
         script: |
           const issueTitle = `Configuratiion Drift Detected for ${process.env.PROJECT_NAME}`
-          const issueBody = `A drift has been detected for ${process.env.PROJECT_NAME} in ${process.env.REGION} region. Stage is ${process.env.STAGE} and cost center is ${process.env.COST_CENTER}`
+          const issueBody = `A drift has been detected for ${process.env.PROJECT_NAME} in ${process.env.REGION} region. Stage is ${process.env.STAGE} and cost center is ${process.env.COST_CENTER}. Find more information in the run https://github.com/btp-automation-scenarios/btp-terraform-drift/actions/runs/${process.env.RUN_ID}`
          
           github.rest.issues.create({
             owner: context.repo.owner,
