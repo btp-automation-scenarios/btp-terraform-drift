@@ -61,6 +61,7 @@ jobs:
         terraform -chdir=${{ env.PATH_TO_TFSCRIPT }} plan -var globalaccount=${{ secrets.GLOBALACCOUNT }} -var region=${{ github.event.inputs.REGION }} -var project_name=${{ github.event.inputs.PROJECT_NAME }} -var stage=${{ github.event.inputs.STAGE }} -var costcenter=${{ github.event.inputs.COST_CENTER }} -var org_name=${{ github.event.inputs.ORGANIZATION }} -no-color -detailed-exitcode > plan.tfplan
         
     - name: Create issue
+      if: steps.terraform_plan.outcome == 'failure'  
       uses: actions/github-script@v7
       env:
         PROJECT_NAME: ${{ github.event.inputs.PROJECT_NAME }}
@@ -82,4 +83,11 @@ jobs:
             title: issueTitle,
             body: issueBody
           })
+          
+    - name: State deviation - Set run to failed
+      if: steps.terraform_plan.outcome == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+            core.setFailed('A state deviation was detected!')    
   
