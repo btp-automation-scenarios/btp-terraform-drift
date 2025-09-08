@@ -62,7 +62,7 @@ jobs:
         
     - name: Create issue
       if: steps.terraform_plan.outcome == 'failure'  
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       env:
         PROJECT_NAME: ${{ github.event.inputs.PROJECT_NAME }}
         REGION: ${{ github.event.inputs.REGION }}
@@ -86,7 +86,7 @@ jobs:
 
     - name: State deviation - Set run to failed
       if: steps.terraform_plan.outcome == 'failure'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
             core.setFailed('A configuration drift was detected!')    
